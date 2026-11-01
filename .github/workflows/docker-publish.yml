@@ -46,6 +46,15 @@ jobs:
           docker logs student-result-ci
           exit 1
 
+      - name: Test prediction endpoint
+        run: |
+          response=$(curl --fail --silent --show-error \
+            -X POST http://localhost:5000/predict \
+            -H "Content-Type: application/json" \
+            -d '{"attendance":90,"internal_marks":85,"assignment_marks":90,"previous_score":80}')
+          echo "$response"
+          echo "$response" | python -c 'import json,sys; result=json.load(sys.stdin); assert result.get("prediction")=="PASS", result; print("Prediction smoke test passed.")'
+
       - name: Remove test container
         if: always()
         run: docker rm -f student-result-ci || true
